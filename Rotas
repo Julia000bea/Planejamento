@@ -1,1 +1,91 @@
+# Definição das Rotas — AgendaMed
 
+## Rotas Públicas
+
+Acessíveis por qualquer visitante, **sem** necessidade de autenticação.
+
+| Método | Rota | Finalidade |
+|--------|------|-----------|
+| GET | `/` | Redireciona para `/login` |
+| GET | `/login` | Exibe a tela de login |
+| POST | `/login` | Processa o formulário de login e inicia sessão |
+| GET | `/cadastro` | Exibe o formulário de cadastro de novo cliente |
+| POST | `/cadastro` | Processa o cadastro e redireciona para o login |
+| GET | `/logout` | Encerra a sessão e redireciona para `/login` |
+| GET | `/403` | Exibe a página de acesso negado |
+| GET | `/404` | Exibe a página de recurso não encontrado |
+
+---
+
+## Rotas Privadas — Cliente
+
+Acessíveis apenas por usuários autenticados com perfil `"cliente"`.  
+Protegidas pelo middleware `authMiddleware`.
+
+| Método | Rota | Finalidade |
+|--------|------|-----------|
+| GET | `/dashboard` | Painel principal do cliente com resumo de consultas |
+| GET | `/profissionais` | Lista todos os profissionais disponíveis |
+| GET | `/consultas` | Lista as consultas do cliente logado |
+| GET | `/consultas/nova` | Exibe o formulário de agendamento de nova consulta |
+| POST | `/consultas` | Cria (agenda) uma nova consulta |
+| GET | `/consultas/:id` | Detalhe de uma consulta específica |
+| POST | `/consultas/:id/cancelar` | Cancela uma consulta do cliente logado |
+
+---
+
+## Rotas Privadas — Administrador
+
+Acessíveis apenas por usuários com perfil `"admin"`.  
+Protegidas pelos middlewares `authMiddleware` + `adminMiddleware`.
+
+### Painel
+| Método | Rota | Finalidade |
+|--------|------|-----------|
+| GET | `/admin/dashboard` | Painel administrativo com visão geral do sistema |
+
+### Gerenciamento de Clientes
+| Método | Rota | Finalidade |
+|--------|------|-----------|
+| GET | `/admin/clientes` | Lista todos os clientes cadastrados |
+| GET | `/admin/clientes/novo` | Formulário de criação de cliente |
+| POST | `/admin/clientes` | Cria um novo cliente |
+| GET | `/admin/clientes/:id/editar` | Formulário de edição de cliente |
+| POST | `/admin/clientes/:id` | Atualiza os dados de um cliente |
+| POST | `/admin/clientes/:id/excluir` | Remove um cliente do sistema |
+
+### Gerenciamento de Profissionais
+| Método | Rota | Finalidade |
+|--------|------|-----------|
+| GET | `/admin/profissionais` | Lista todos os profissionais cadastrados |
+| GET | `/admin/profissionais/novo` | Formulário de criação de profissional |
+| POST | `/admin/profissionais` | Cria um novo profissional |
+| GET | `/admin/profissionais/:id/editar` | Formulário de edição de profissional |
+| POST | `/admin/profissionais/:id` | Atualiza os dados de um profissional |
+| POST | `/admin/profissionais/:id/excluir` | Remove um profissional do sistema |
+
+### Gerenciamento de Consultas
+| Método | Rota | Finalidade |
+|--------|------|-----------|
+| GET | `/admin/consultas` | Lista todas as consultas do sistema |
+| GET | `/admin/consultas/:id` | Detalhe de uma consulta |
+| POST | `/admin/consultas/:id/status` | Atualiza o status de uma consulta |
+| POST | `/admin/consultas/:id/excluir` | Remove uma consulta do sistema |
+
+---
+
+## Resumo por Middleware
+
+| Middleware Aplicado | Rotas Cobertas |
+|--------------------|----------------|
+| Nenhum (público) | `/`, `/login`, `/cadastro`, `/logout`, `/403`, `/404` |
+| `authMiddleware` | `/dashboard`, `/profissionais`, `/consultas/*` |
+| `authMiddleware` + `adminMiddleware` | Todas as rotas `/admin/*` |
+
+---
+
+## Observações
+
+- Como o HTML não suporta `PUT` e `DELETE` nativamente, usamos `POST` para todas as operações de escrita, diferenciando pela rota (ex.: `/excluir`, `/cancelar`, `/status`).
+- O middleware de erro captura rotas inexistentes e renderiza a página `404.html`.
+- Sessões são gerenciadas via `express-session`, armazenando `id`, `nome`, `email` e `perfil` do usuário logado.
