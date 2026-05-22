@@ -5,11 +5,10 @@
 | # | Nome | GitHub |
 |---|------|--------|
 | 1 | Igor Henrique Cunha | @igoorique |
-| 2 | Integrante 2 | @usuario2 |
-| 3 | Integrante 3 | @usuario3 |
-| 4 | Integrante 4 | @usuario4 |
+| 2 | Mateus Batista | @oBatistaa |
+| 3 | Julia Beatriz | @julia000bea |
 
-> ⚠️ Substitua os nomes e usuários pelos dados reais do grupo.
+
 
 ---
 
