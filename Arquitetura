@@ -1,0 +1,185 @@
+# Planejamento Técnico — Arquitetura do Sistema
+
+## Estrutura de Pastas
+
+```
+agendamed/
+├── src/
+│   ├── controllers/
+│   │   ├── authController.js          # Login, logout, cadastro
+│   │   ├── clienteController.js       # CRUD de clientes
+│   │   ├── profissionalController.js  # CRUD de profissionais
+│   │   └── consultaController.js      # CRUD de consultas
+│   │
+│   ├── services/
+│   │   ├── authService.js             # Regras de autenticação e senha
+│   │   ├── clienteService.js          # Regras de negócio de clientes
+│   │   ├── profissionalService.js     # Regras de negócio de profissionais
+│   │   └── consultaService.js         # Regras de negócio de consultas
+│   │
+│   ├── repositories/
+│   │   ├── clienteRepository.js       # Acesso a dados de clientes
+│   │   ├── profissionalRepository.js  # Acesso a dados de profissionais
+│   │   └── consultaRepository.js      # Acesso a dados de consultas
+│   │
+│   ├── middlewares/
+│   │   ├── authMiddleware.js          # Verifica se o usuário está logado
+│   │   ├── adminMiddleware.js         # Verifica se é administrador
+│   │   └── errorMiddleware.js         # Tratamento de erros globais
+│   │
+│   ├── routes/
+│   │   ├── authRoutes.js              # Rotas públicas de auth
+│   │   ├── clienteRoutes.js           # Rotas de clientes
+│   │   ├── profissionalRoutes.js      # Rotas de profissionais
+│   │   └── consultaRoutes.js          # Rotas de consultas
+│   │
+│   ├── views/                         # Arquivos HTML
+│   │   ├── login.html
+│   │   ├── cadastro.html
+│   │   ├── dashboard-cliente.html
+│   │   ├── dashboard-admin.html
+│   │   ├── profissionais/
+│   │   │   ├── lista.html
+│   │   │   └── form.html
+│   │   ├── consultas/
+│   │   │   ├── lista.html
+│   │   │   └── form.html
+│   │   ├── clientes/
+│   │   │   ├── lista.html
+│   │   │   └── form.html
+│   │   └── erros/
+│   │       ├── 403.html
+│   │       └── 404.html
+│   │
+│   └── data/                          # Persistência em JSON (simulando banco)
+│       ├── clientes.json
+│       ├── profissionais.json
+│       └── consultas.json
+│
+├── public/                            # Arquivos estáticos
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       └── main.js
+│
+├── app.js                             # Configuração principal do Express
+├── package.json
+└── README.md
+```
+
+---
+
+## Descrição das Responsabilidades
+
+### Controller
+Responsável por receber as requisições HTTP, extrair os dados (body, params, session), chamar o Service correspondente e devolver a resposta (redirect, JSON ou renderização de HTML).
+
+> **Não** contém regras de negócio nem acesso direto a dados.
+
+**Exemplo:** `consultaController.js` recebe `POST /consultas`, chama `consultaService.agendar()` e redireciona para a listagem.
+
+---
+
+### Service
+Contém as **regras de negócio** da aplicação. Valida dados, aplica lógica (ex.: verificar se o horário está disponível, se o profissional existe, se o cliente pode cancelar), e chama o Repository para persistência.
+
+> **Não** acessa diretamente os dados nem conhece `req`/`res`.
+
+**Exemplo:** `consultaService.js` verifica se já existe consulta no mesmo horário para o profissional antes de salvar.
+
+---
+
+### Repository
+Responsável exclusivamente por **ler e escrever dados** (arquivos JSON ou futuramente banco de dados). Expõe métodos como `findAll()`, `findById()`, `save()`, `update()`, `delete()`.
+
+> **Não** contém lógica de negócio.
+
+**Exemplo:** `consultaRepository.js` lê e salva o arquivo `consultas.json`.
+
+---
+
+### Middlewares
+
+| Middleware | Função |
+|------------|--------|
+| `authMiddleware.js` | Verifica `req.session.usuario`; se não existir, redireciona para `/login` |
+| `adminMiddleware.js` | Verifica se `req.session.usuario.perfil === 'admin'`; caso contrário, redireciona para `/403` |
+| `errorMiddleware.js` | Captura erros não tratados e renderiza a página de erro adequada |
+
+---
+
+## Organização das Rotas
+
+As rotas são divididas em dois grupos principais:
+
+- **Rotas públicas:** acessíveis sem autenticação.
+- **Rotas privadas:** protegidas pelo `authMiddleware`; algumas também pelo `adminMiddleware`.
+
+Cada arquivo de rotas importa o controller correspondente e aplica os middlewares necessários antes dos handlers.
+
+```js
+// Exemplo: consultaRoutes.js
+router.use(authMiddleware);                          // todas privadas
+router.get('/', consultaController.listar);
+router.post('/', consultaController.agendar);
+router.delete('/:id', consultaController.cancelar);
+```
+
+---
+
+## Entidades do Sistema
+
+### Cliente (Paciente)
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | string (UUID) | Identificador único |
+| nome | string | Nome completo |
+| email | string | E-mail (usado no login) |
+| senha | string (hash) | Senha criptografada |
+| telefone | string | Telefone de contato |
+| dataNascimento | string | Data de nascimento |
+| perfil | string | `"cliente"` |
+| criadoEm | string | Data de criação do cadastro |
+
+---
+
+### Profissional
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | string (UUID) | Identificador único |
+| nome | string | Nome completo |
+| especialidade | string | Ex.: Cardiologia, Clínica Geral |
+| crm | string | Número do CRM |
+| telefone | string | Telefone do consultório |
+| diasAtendimento | array | Ex.: `["segunda","quarta","sexta"]` |
+| horarios | array | Ex.: `["08:00","09:00","10:00"]` |
+| criadoEm | string | Data de cadastro |
+
+---
+
+### Consulta
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | string (UUID) | Identificador único |
+| clienteId | string | Referência ao Cliente |
+| profissionalId | string | Referência ao Profissional |
+| data | string | Data da consulta (YYYY-MM-DD) |
+| horario | string | Horário (HH:MM) |
+| status | string | `"agendada"`, `"cancelada"`, `"concluida"` |
+| observacoes | string | Observações opcionais do paciente |
+| criadoEm | string | Data de criação do agendamento |
+
+---
+
+## Relacionamento entre Entidades
+
+```
+Cliente (1) ──────────────── (N) Consulta
+                                      │
+Profissional (1) ────────────── (N) Consulta
+```
+
+- Um **Cliente** pode ter várias **Consultas**.
+- Um **Profissional** pode ter várias **Consultas**.
+- Cada **Consulta** pertence a exatamente um Cliente e um Profissional.
+- O relacionamento é gerenciado via `clienteId` e `profissionalId` na entidade Consulta.
