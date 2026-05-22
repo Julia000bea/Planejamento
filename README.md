@@ -14,7 +14,7 @@
 
 ## Divisão de Responsabilidades
 
-### Integrante 1 — Autenticação e Sessões
+### Igor Henrique — Autenticação e Sessões
 Responsável pela base do projeto e pelo sistema de autenticação.
 
 **Tarefas:**
@@ -29,7 +29,7 @@ Responsável pela base do projeto e pelo sistema de autenticação.
 
 ---
 
-### Integrante 2 — Módulo de Profissionais
+### Mateus Batista — Módulo de Profissionais
 Responsável pelo CRUD completo de profissionais.
 
 **Tarefas:**
@@ -43,7 +43,7 @@ Responsável pelo CRUD completo de profissionais.
 
 ---
 
-### Integrante 3 — Módulo de Consultas
+### Julia Beatriz — Módulo de Consultas
 Responsável pelo CRUD completo de consultas (agendamentos).
 
 **Tarefas:**
