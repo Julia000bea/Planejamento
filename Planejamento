@@ -188,7 +188,6 @@ Protegidas pelos middlewares `authMiddleware` + `adminMiddleware`.
 | `authMiddleware` | `/dashboard`, `/profissionais`, `/consultas/*` |
 | `authMiddleware` + `adminMiddleware` | Todas as rotas `/admin/*` |
 
----
 
 ## Observações
 
