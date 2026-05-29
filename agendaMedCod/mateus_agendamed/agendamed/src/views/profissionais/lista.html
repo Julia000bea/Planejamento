@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaMed — Profissionais</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/dashboard" class="navbar-brand">🗓️ AgendaMed</a>
+    <span class="navbar-info" id="navInfo">Olá | <a href="/logout">Sair</a></span>
+  </nav>
+
+  <div class="container">
+    <div id="alerta"></div>
+    <div class="section-header">
+      <h2 class="section-title">Nossos Profissionais</h2>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input type="text" id="busca" placeholder="🔍 Buscar por especialidade" style="width:220px;">
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>CRM</th><th>Especialidade</th><th>Dias de Atendimento</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="tabelaProfissionais">
+          <tr><td colspan="5" style="text-align:center;padding:24px;">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const DIAS_LABEL = { segunda:'Seg', terca:'Ter', quarta:'Qua', quinta:'Qui', sexta:'Sex', sabado:'Sáb' };
+    let todosProfissionais = [];
+
+    async function carregar() {
+      const params = new URLSearchParams(window.location.search);
+      const alerta = document.getElementById('alerta');
+      if (params.get('sucesso')) alerta.innerHTML = `<div class="alert alert-sucesso">${decodeURIComponent(params.get('sucesso'))}</div>`;
+      if (params.get('erro')) alerta.innerHTML = `<div class="alert alert-erro">${decodeURIComponent(params.get('erro'))}</div>`;
+
+      const isAdmin = window.location.pathname.startsWith('/admin');
+      const apiUrl = isAdmin ? '/admin/profissionais/api' : '/profissionais/api';
+      const res = await fetch(apiUrl);
+      todosProfissionais = await res.json();
+      renderizar(todosProfissionais);
+    }
+
+    function renderizar(lista) {
+      const isAdmin = window.location.pathname.startsWith('/admin');
+      const tbody = document.getElementById('tabelaProfissionais');
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--cinza-texto);">Nenhum profissional encontrado.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(p => `
+        <tr>
+          <td data-label="Nome">${p.nome}</td>
+          <td data-label="CRM">${p.crm}</td>
+          <td data-label="Especialidade"><span class="badge badge-especialidade">${p.especialidade}</span></td>
+          <td data-label="Dias">${p.diasAtendimento.map(d => DIAS_LABEL[d] || d).join(', ')}</td>
+          <td data-label="Ação">
+            ${isAdmin
+              ? `<a href="/admin/profissionais/${p.id}/editar" class="btn btn-sm btn-outline">Editar</a>
+                 <form style="display:inline" onsubmit="return confirm('Excluir profissional?')">
+                   <button formaction="/admin/profissionais/${p.id}/excluir" formmethod="POST" class="btn btn-sm btn-danger">Excluir</button>
+                 </form>`
+              : `<a href="/consultas/nova?profissionalId=${p.id}" class="btn btn-sm btn-success">Agendar</a>`
+            }
+          </td>
+        </tr>`).join('');
+    }
+
+    document.getElementById('busca').addEventListener('input', e => {
+      const termo = e.target.value.toLowerCase();
+      const filtrados = todosProfissionais.filter(p =>
+        p.especialidade.toLowerCase().includes(termo) || p.nome.toLowerCase().includes(termo)
+      );
+      renderizar(filtrados);
+    });
+
+    if (window.location.pathname.startsWith('/admin')) {
+      const header = document.querySelector('.section-header');
+      const btn = document.createElement('a');
+      btn.href = '/admin/profissionais/novo';
+      btn.className = 'btn btn-primary btn-sm';
+      btn.textContent = '+ Novo Profissional';
+      header.appendChild(btn);
+    }
+
+    carregar();
+  </script>
+</body>
+</html>

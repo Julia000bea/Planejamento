@@ -1,0 +1,32 @@
+[
+  {
+    "id": "prof-0001",
+    "nome": "Dr. Carlos Mendes",
+    "especialidade": "Cardiologia",
+    "crm": "12345-SC",
+    "telefone": "(49) 3322-0001",
+    "diasAtendimento": ["segunda", "quarta", "sexta"],
+    "horarios": ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00"],
+    "criadoEm": "2025-01-05T08:00:00.000Z"
+  },
+  {
+    "id": "prof-0002",
+    "nome": "Dra. Ana Paula",
+    "especialidade": "Clínica Geral",
+    "crm": "23456-SC",
+    "telefone": "(49) 3322-0002",
+    "diasAtendimento": ["terca", "quinta"],
+    "horarios": ["08:00", "09:00", "10:00", "14:00", "15:00", "16:00"],
+    "criadoEm": "2025-01-05T08:00:00.000Z"
+  },
+  {
+    "id": "prof-0003",
+    "nome": "Dr. Roberto Lima",
+    "especialidade": "Ortopedia",
+    "crm": "34567-SC",
+    "telefone": "(49) 3322-0003",
+    "diasAtendimento": ["segunda", "sexta"],
+    "horarios": ["08:00", "09:00", "10:00", "11:00"],
+    "criadoEm": "2025-01-05T08:00:00.000Z"
+  }
+]

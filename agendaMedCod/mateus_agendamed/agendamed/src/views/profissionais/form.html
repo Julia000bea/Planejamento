@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaMed — Profissional</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/admin/dashboard" class="navbar-brand">🗓️ AgendaMed — ADMIN</a>
+    <span class="navbar-info">Administrador | <a href="/logout">Sair</a></span>
+  </nav>
+
+  <div class="admin-layout">
+    <nav class="sidebar">
+      <a href="/admin/dashboard">📊 Dashboard</a>
+      <a href="/admin/clientes">👥 Clientes</a>
+      <a href="/admin/profissionais" class="active">🩺 Profissionais</a>
+      <a href="/admin/consultas">📋 Consultas</a>
+    </nav>
+
+    <div class="content">
+      <div class="card" style="max-width:640px;">
+        <h2 class="card-titulo" id="tituloForm">Cadastrar Profissional</h2>
+        <div id="alerta"></div>
+
+        <form id="formProf" method="POST">
+          <div class="form-group">
+            <label>Nome completo</label>
+            <input type="text" name="nome" id="nome" placeholder="Dr. Carlos Mendes" required>
+          </div>
+          <div class="form-group">
+            <label>Especialidade</label>
+            <input type="text" name="especialidade" id="especialidade" placeholder="Ex.: Cardiologia" required>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label>CRM</label>
+              <input type="text" name="crm" id="crm" placeholder="12345-SC" required>
+            </div>
+            <div class="form-group">
+              <label>Telefone</label>
+              <input type="text" name="telefone" id="telefone" placeholder="(49) 3322-0000" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Dias de Atendimento</label>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;" id="diasCheckboxes">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="checkbox" name="diasAtendimento" value="segunda"> Segunda</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="checkbox" name="diasAtendimento" value="terca"> Terça</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="checkbox" name="diasAtendimento" value="quarta"> Quarta</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="checkbox" name="diasAtendimento" value="quinta"> Quinta</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="checkbox" name="diasAtendimento" value="sexta"> Sexta</label>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;"><input type="checkbox" name="diasAtendimento" value="sabado"> Sábado</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Horários Disponíveis (separados por vírgula)</label>
+            <input type="text" name="horariosRaw" id="horariosRaw" placeholder="08:00, 09:00, 10:00, 14:00">
+          </div>
+          <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">Salvar</button>
+            <a href="/admin/profissionais" class="btn btn-secondary" style="flex:1;text-align:center;">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const alerta = document.getElementById('alerta');
+    if (params.get('erro')) alerta.innerHTML = `<div class="alert alert-erro">${decodeURIComponent(params.get('erro'))}</div>`;
+
+    // Preenche form se for edição (URL: /admin/profissionais/:id/editar)
+    const match = window.location.pathname.match(/profissionais\/(.+)\/editar/);
+    if (match) {
+      const id = match[1];
+      document.getElementById('tituloForm').textContent = 'Editar Profissional';
+      document.getElementById('formProf').action = `/admin/profissionais/${id}`;
+      fetch(`/admin/profissionais/api/${id}`)
+        .then(r => r.json())
+        .then(p => {
+          document.getElementById('nome').value = p.nome;
+          document.getElementById('especialidade').value = p.especialidade;
+          document.getElementById('crm').value = p.crm;
+          document.getElementById('telefone').value = p.telefone;
+          document.getElementById('horariosRaw').value = p.horarios.join(', ');
+          p.diasAtendimento.forEach(d => {
+            const cb = document.querySelector(`input[value="${d}"]`);
+            if (cb) cb.checked = true;
+          });
+        });
+    } else {
+      document.getElementById('formProf').action = '/admin/profissionais';
+    }
+
+    // Converte horários separados por vírgula em múltiplos inputs
+    document.getElementById('formProf').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const horariosRaw = document.getElementById('horariosRaw').value;
+      const horarios = horariosRaw.split(',').map(h => h.trim()).filter(Boolean);
+      horarios.forEach(h => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = 'horarios';
+        inp.value = h;
+        this.appendChild(inp);
+      });
+      document.getElementById('horariosRaw').name = '';
+      this.submit();
+    });
+  </script>
+</body>
+</html>
