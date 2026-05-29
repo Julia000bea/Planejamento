@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaMed — Consultas</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/dashboard" class="navbar-brand" id="navBrand">🗓️ AgendaMed</a>
+    <span class="navbar-info">Olá | <a href="/logout">Sair</a></span>
+  </nav>
+
+  <div id="adminLayout" style="display:none;" class="admin-layout">
+    <nav class="sidebar">
+      <a href="/admin/dashboard">📊 Dashboard</a>
+      <a href="/admin/clientes">👥 Clientes</a>
+      <a href="/admin/profissionais">🩺 Profissionais</a>
+      <a href="/admin/consultas" class="active">📋 Consultas</a>
+    </nav>
+    <div class="content" id="mainContent"></div>
+  </div>
+
+  <div id="clienteLayout" class="container" style="display:none;"></div>
+
+  <script>
+    const isAdmin = window.location.pathname.startsWith('/admin');
+    const params = new URLSearchParams(window.location.search);
+
+    async function carregar() {
+      const apiUrl = isAdmin ? '/admin/consultas/api' : '/consultas/api';
+      const res = await fetch(apiUrl);
+      const consultas = await res.json();
+
+      const alertaHTML = params.get('sucesso')
+        ? `<div class="alert alert-sucesso">${decodeURIComponent(params.get('sucesso'))}</div>`
+        : params.get('erro')
+        ? `<div class="alert alert-erro">${decodeURIComponent(params.get('erro'))}</div>`
+        : '';
+
+      const tabelaHTML = `
+        <div class="section-header">
+          <h2 class="section-title">${isAdmin ? 'Todas as Consultas' : 'Minhas Consultas'}</h2>
+          ${!isAdmin ? '<a href="/consultas/nova" class="btn btn-primary btn-sm">+ Nova Consulta</a>' : ''}
+        </div>
+        ${alertaHTML}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                ${isAdmin ? '<th>Paciente</th>' : ''}
+                <th>Data</th><th>Horário</th><th>Profissional</th>
+                <th>Especialidade</th><th>Status</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>${renderLinhas(consultas)}</tbody>
+          </table>
+        </div>`;
+
+      if (isAdmin) {
+        document.getElementById('adminLayout').style.display = 'flex';
+        document.getElementById('mainContent').innerHTML = tabelaHTML;
+      } else {
+        document.getElementById('clienteLayout').style.display = 'block';
+        document.getElementById('clienteLayout').innerHTML = tabelaHTML;
+      }
+    }
+
+    function renderLinhas(consultas) {
+      if (!consultas.length) return `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--cinza-texto);">Nenhuma consulta encontrada.</td></tr>`;
+      return consultas.map(c => `
+        <tr>
+          ${isAdmin ? `<td data-label="Paciente">${c.clienteNome || '—'}</td>` : ''}
+          <td data-label="Data">${fmt(c.data)}</td>
+          <td data-label="Horário">${c.horario}</td>
+          <td data-label="Profissional">${c.profissionalNome}</td>
+          <td data-label="Especialidade">${c.especialidade}</td>
+          <td data-label="Status"><span class="badge badge-${c.status}">${cap(c.status)}</span></td>
+          <td data-label="Ações">
+            ${isAdmin
+              ? `<form style="display:inline">
+                   <select name="status" onchange="atualizarStatus('${c.id}', this.value)" style="padding:4px 8px;border-radius:6px;font-size:0.82rem;">
+                     <option ${c.status==='agendada'?'selected':''} value="agendada">Agendada</option>
+                     <option ${c.status==='concluida'?'selected':''} value="concluida">Concluída</option>
+                     <option ${c.status==='cancelada'?'selected':''} value="cancelada">Cancelada</option>
+                   </select>
+                 </form>
+                 <form style="display:inline" onsubmit="return confirm('Excluir consulta?')">
+                   <button formaction="/admin/consultas/${c.id}/excluir" formmethod="POST" class="btn btn-sm btn-danger">Excluir</button>
+                 </form>`
+              : `${c.status==='agendada' ? `<form style="display:inline" onsubmit="return confirm('Cancelar esta consulta?')">
+                   <button formaction="/consultas/${c.id}/cancelar" formmethod="POST" class="btn btn-sm btn-danger">Cancelar</button>
+                 </form>` : ''}
+                 <span class="btn btn-sm btn-outline" style="opacity:.5;cursor:default;">Detalhes</span>`
+            }
+          </td>
+        </tr>`).join('');
+    }
+
+    async function atualizarStatus(id, status) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/consultas/${id}/status`;
+      const input = document.createElement('input');
+      input.name = 'status'; input.value = status;
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    function fmt(d) { const [y,m,dia]=d.split('-'); return `${dia}/${m}/${y}`; }
+    function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+    carregar();
+  </script>
+</body>
+</html>
