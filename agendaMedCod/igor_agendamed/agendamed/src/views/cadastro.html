@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaMed — Cadastro</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">🗓️ AgendaMed</a>
+    <span class="navbar-info">Cadastro de Paciente</span>
+  </nav>
+
+  <div class="container-sm">
+    <div class="card">
+      <h2 class="card-titulo">Criar nova conta</h2>
+      <div id="alerta"></div>
+
+      <form action="/cadastro" method="POST" id="formCadastro">
+        <div class="form-group">
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" name="nome" placeholder="João da Silva" required>
+        </div>
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" placeholder="joao@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="telefone">Telefone</label>
+          <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
+        </div>
+        <div class="form-group">
+          <label for="dataNascimento">Data de Nascimento</label>
+          <input type="date" id="dataNascimento" name="dataNascimento" required>
+        </div>
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required>
+        </div>
+        <div class="form-group">
+          <label for="confirmarSenha">Confirmar Senha</label>
+          <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-success btn-block" style="margin-top: 8px;">Criar conta</button>
+      </form>
+
+      <p class="auth-link" style="margin-top: 20px;">Já tem conta? <a href="/login">Faça login</a></p>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const alerta = document.getElementById('alerta');
+    if (params.get('erro')) {
+      alerta.innerHTML = `<div class="alert alert-erro">${decodeURIComponent(params.get('erro'))}</div>`;
+    }
+  </script>
+</body>
+</html>
