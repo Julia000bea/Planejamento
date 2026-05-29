@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaMed — Login</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">🗓️ AgendaMed</a>
+    <span class="navbar-info">Tela de Login</span>
+  </nav>
+
+  <div class="container-sm">
+    <div style="margin-bottom: 12px;">
+      <div class="auth-logo">Agenda<span>Med</span></div>
+      <p class="auth-subtitle">Sistema de Agendamento de Consultas</p>
+    </div>
+
+    <div class="card">
+      <h2 class="card-titulo">Entrar no sistema</h2>
+      <div id="alerta"></div>
+
+      <form action="/login" method="POST">
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" placeholder="exemplo@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px;">Entrar</button>
+      </form>
+
+      <p class="auth-link" style="margin-top: 20px;">Não tem conta? <a href="/cadastro">Cadastre-se aqui</a></p>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const alerta = document.getElementById('alerta');
+    if (params.get('erro')) {
+      alerta.innerHTML = `<div class="alert alert-erro">${decodeURIComponent(params.get('erro'))}</div>`;
+    }
+    if (params.get('sucesso')) {
+      alerta.innerHTML = `<div class="alert alert-sucesso">${decodeURIComponent(params.get('sucesso'))}</div>`;
+    }
+  </script>
+</body>
+</html>
