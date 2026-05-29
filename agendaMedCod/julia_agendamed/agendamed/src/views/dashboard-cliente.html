@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaMed — Meu Painel</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/dashboard" class="navbar-brand">🗓️ AgendaMed</a>
+    <span class="navbar-info" id="navUsuario">Carregando... | <a href="/logout">Sair</a></span>
+  </nav>
+
+  <div class="container">
+    <div id="alerta"></div>
+
+    <div class="section-header" style="margin-bottom: 16px;">
+      <h2 class="section-title">MEU PAINEL</h2>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="stat-numero" id="totalAgendadas">—</div><div class="stat-label">Consultas Agendadas</div></div>
+      <div class="stat-card"><div class="stat-numero" id="consultasSemana">—</div><div class="stat-label">Consulta esta semana</div></div>
+      <div class="stat-card"><div class="stat-numero" id="profDisponiveis">—</div><div class="stat-label">Profissionais Disponíveis</div></div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid var(--cinza-borda); margin: 24px 0;">
+
+    <div class="section-header">
+      <h2 class="section-title">PRÓXIMAS CONSULTAS</h2>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th><th>Horário</th><th>Profissional</th>
+            <th>Especialidade</th><th>Status</th><th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaConsultas">
+          <tr><td colspan="6" style="text-align:center;color:var(--cinza-texto);padding:24px;">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <a href="/consultas/nova" class="btn btn-primary">+ Agendar nova consulta</a>
+    </div>
+  </div>
+
+  <script>
+    async function carregarDados() {
+      const params = new URLSearchParams(window.location.search);
+      const alerta = document.getElementById('alerta');
+      if (params.get('sucesso')) alerta.innerHTML = `<div class="alert alert-sucesso">${decodeURIComponent(params.get('sucesso'))}</div>`;
+      if (params.get('erro')) alerta.innerHTML = `<div class="alert alert-erro">${decodeURIComponent(params.get('erro'))}</div>`;
+
+      try {
+        const res = await fetch('/dashboard/api');
+        const dados = await res.json();
+
+        document.getElementById('totalAgendadas').textContent = dados.agendadas;
+        document.getElementById('consultasSemana').textContent = dados.consultasSemana;
+        document.getElementById('profDisponiveis').textContent = dados.profissionaisDisponiveis;
+
+        const tbody = document.getElementById('tabelaConsultas');
+        if (!dados.proximasConsultas.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--cinza-texto);padding:24px;">Nenhuma consulta agendada.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = dados.proximasConsultas.map(c => `
+          <tr>
+            <td data-label="Data">${formatarData(c.data)}</td>
+            <td data-label="Horário">${c.horario}</td>
+            <td data-label="Profissional">${c.profissionalNome}</td>
+            <td data-label="Especialidade">${c.especialidade}</td>
+            <td data-label="Status"><span class="badge badge-${c.status}">${capitalize(c.status)}</span></td>
+            <td data-label="Ação">
+              <a href="/consultas" class="btn btn-sm btn-outline">Ver</a>
+              <form style="display:inline" onsubmit="return confirm('Cancelar esta consulta?')">
+                <button formaction="/consultas/${c.id}/cancelar" formmethod="POST" class="btn btn-sm btn-danger">Cancelar</button>
+              </form>
+            </td>
+          </tr>`).join('');
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    function formatarData(d) {
+      const [y,m,dia] = d.split('-');
+      return `${dia}/${m}/${y}`;
+    }
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    carregarDados();
+  </script>
+</body>
+</html>
